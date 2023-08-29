@@ -52,8 +52,7 @@ async def callback_main_menu(callback: types.CallbackQuery, state: FSMContext):
 @router.message(User.choosing_gender, F.text.in_(kb.genders))
 async def gender_chosen(message: Message, state: FSMContext):
     await state.update_data(chosen_gender=message.text)
-    msg = await message.answer(text="Хорошо, теперь выберите размер", reply_markup=kb.make_row_keyboard(kb.sizes))
-    await state.update_data(size_row_kb=msg)
+    await message.answer(text="Хорошо, теперь выберите размер", reply_markup=kb.make_row_keyboard(kb.sizes))
     await state.set_state(User.choosing_size)
 
 
@@ -65,8 +64,7 @@ async def gender_chosen_incorrectly(message: Message):
 @router.message(User.choosing_size, F.text.in_(kb.sizes))
 async def size_chosen(message: Message, state: FSMContext):
     await state.update_data(chosen_size=message.text)
-    user_data = await state.get_data()
-    await user_data["size_row_kb"].answer(text=text.user_data, reply_markup=types.ReplyKeyboardRemove())
+    await message.answer(text=text.user_data, reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(User.all_is_chosen)
     await message.answer(text=text.logic_fork, reply_markup=kb.logic_fork)
 
