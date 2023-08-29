@@ -6,6 +6,7 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from handlers import router
 
+
 async def main():
     bot = Bot(token=config.bot_token.get_secret_value(), parse_mode=ParseMode.HTML)
     dp = Dispatcher(storage=MemoryStorage())

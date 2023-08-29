@@ -1,3 +1,5 @@
+import time
+
 from aiogram import Router, types, F
 from aiogram.types import Message
 from aiogram.filters import Command
@@ -17,18 +19,26 @@ class User(StatesGroup):
 
 
 @router.message(Command("start"))
-async def start_handler(msg: Message):
-    await msg.answer(text.greet.format(name=msg.from_user.full_name), reply_markup=kb.menu_main)
+async def start_handler(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(text.greet.format(name=message.from_user.full_name), reply_markup=kb.menu_main)
 
-
-@router.message(F.text == "Меню")
+@router.message(F.text.lower() == "меню" or F.text.lower() == "menu")
 @router.message(F.text == "Выйти в меню")
-async def menu_main(msg: Message):
-    await msg.answer(text.menu_main, reply_markup=kb.menu_main)
+async def menu_main(message: Message):
+    await message.answer(text.menu_main, reply_markup=kb.menu_main)
+
+
+@router.message(Command("cancel"))
+@router.message(F.text.lower() == "cancel" or F.text.lower() == "отмена")
+async def cmd_cancel(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(text="Действия отменены", reply_markup=kb.ReplyKeyboardRemove())
 
 
 @router.callback_query(F.data.startswith("item_search"))
 async def callback_main_menu(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.edit_reply_markup()
     action = callback.data.split("_")[2]
     if action == "choice":
         await callback.message.answer(text.gender, reply_markup=kb.make_row_keyboard(kb.genders))
