@@ -14,7 +14,9 @@ router = Router()
 class User(StatesGroup):
     choosing_gender = State()
     choosing_size = State()
-    all_is_chosen = State()
+    first_step_done = State()
+    choosing_type = State()
+    choosing_brand = State()
 
 
 @router.message(Command("start"))
@@ -65,7 +67,7 @@ async def gender_chosen_incorrectly(message: Message):
 async def size_chosen(message: Message, state: FSMContext):
     await state.update_data(chosen_size=message.text)
     await message.answer(text=text.user_data, reply_markup=types.ReplyKeyboardRemove())
-    await state.set_state(User.all_is_chosen)
+    await state.set_state(User.first_step_done)
     await message.answer(text=text.logic_fork, reply_markup=kb.logic_fork)
 
 
@@ -74,14 +76,37 @@ async def size_chosen_incorrectly(message: Message):
     await message.answer(text="Размер выбран неправильно", reply_markup=kb.make_row_keyboard(kb.sizes))
 
 
-@router.callback_query(User.all_is_chosen, F.data.startswith("filter"))
+@router.callback_query(User.first_step_done, F.data.startswith("filter"))
 async def callback_logic_fork(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     action = callback.data.split("_")[1]
     if action == "brand":
-        await callback.message.answer(text.brand)
-
+        await callback.message.answer(text.brand, reply_markup=kb.make_row_keyboard(kb.type_list))
+        await state.set_state(User.choosing_type)
     elif action == "type":
         # Ветка с поиском товара по ID
-        await callback.message.answer(text.type)
+        await callback.message.answer(text.type, reply_markup=kb.make_row_keyboard(kb.brand_list))
+        await state.set_state(User.choosing_brand)
     await callback.answer()
+
+
+@router.message(User.choosing_type, F.text.in_(kb.type_list))
+async def type_chosen(message: Message, state: FSMContext):
+    await state.update_data(chosen_type=message.text)
+    await message.answer(text=text.type_search, reply_markup=types.ReplyKeyboardRemove())
+
+
+@router.message(User.choosing_type)
+async def type_chosen_incorrectly(message: Message):
+    await message.answer(text="Тип выбран неправильно", reply_markup=kb.make_row_keyboard(kb.type_list))
+
+
+@router.message(User.choosing_brand, F.text.in_(kb.brand_list))
+async def brand_chosen(message: Message, state: FSMContext):
+    await state.update_data(chosen_type=message.text)
+    await message.answer(text=text.brand_search, reply_markup=types.ReplyKeyboardRemove())
+
+
+@router.message(User.choosing_brand)
+async def brand_chosen_incorrectly(message: Message):
+    await message.answer(text="Бренд выбран неправильно", reply_markup=kb.make_row_keyboard(kb.brand_list))
