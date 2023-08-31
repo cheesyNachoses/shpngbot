@@ -81,7 +81,7 @@ async def callback_logic_fork(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     action = callback.data.split("_")[1]
     if action == "brand":
-        await callback.message.answer(text.brand, reply_markup=kb.make_row_keyboard(kb.type_list))
+        await callback.message.answer(text.brand)
         await state.set_state(User.choosing_type)
     elif action == "type":
         # Ветка с поиском товара по ID
@@ -101,12 +101,9 @@ async def type_chosen_incorrectly(message: Message):
     await message.answer(text="Тип выбран неправильно", reply_markup=kb.make_row_keyboard(kb.type_list))
 
 
-@router.message(User.choosing_brand, F.text.in_(kb.brand_list))
+@router.message(User.choosing_brand)
 async def brand_chosen(message: Message, state: FSMContext):
+    # Проверка введенного текста в сообщении на схожесть с элементами из списка брендов
     await state.update_data(chosen_type=message.text)
     await message.answer(text=text.brand_search, reply_markup=types.ReplyKeyboardRemove())
 
-
-@router.message(User.choosing_brand)
-async def brand_chosen_incorrectly(message: Message):
-    await message.answer(text="Бренд выбран неправильно", reply_markup=kb.make_row_keyboard(kb.brand_list))
