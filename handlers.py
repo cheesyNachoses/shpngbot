@@ -7,6 +7,7 @@ from aiogram.filters.state import StatesGroup, State
 
 import kb
 import text
+import utils
 
 router = Router()
 
@@ -104,6 +105,10 @@ async def type_chosen_incorrectly(message: Message):
 @router.message(User.choosing_brand)
 async def brand_chosen(message: Message, state: FSMContext):
     # Проверка введенного текста в сообщении на схожесть с элементами из списка брендов
-    await state.update_data(chosen_type=message.text)
+    suggested_brand = utils.brand_check(utils.get_brand_list(), message.text)
+    await message.answer(reply_markup=types.ReplyKeyboardRemove())
+    if suggested_brand is not None:
+        await state.update_data(chosen_brand=suggested_brand)
+        await message.answer(text=text.brand_validation,reply_markup=)
     await message.answer(text=text.brand_search, reply_markup=types.ReplyKeyboardRemove())
 
