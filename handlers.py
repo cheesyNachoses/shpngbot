@@ -84,7 +84,7 @@ async def callback_logic_fork(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     action = callback.data.split("_")[1]
     if action == "brand":
-        await callback.message.answer(text.brand,reply_markup=kb.make_row_keyboard(kb.brand_list))
+        await callback.message.answer(text.brand, reply_markup=kb.make_row_keyboard(kb.brand_list))
         await state.set_state(User.choosing_type)
     elif action == "type":
         # Ветка с поиском товара по ID
