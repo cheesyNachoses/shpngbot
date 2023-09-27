@@ -20,7 +20,9 @@ class User(StatesGroup):
     first_step_done = State()
     choosing_type = State()
     choosing_brand = State()
-    choosed_id_search = State()
+    choosing_brand_validation = State()
+    brand_choosed= State()  #Этот стэйт надо нормально назвать в соответствии с тем, что дальше по логике
+
 
 
 @router.message(Command("start"))
@@ -51,9 +53,10 @@ async def callback_main_menu(callback: types.CallbackQuery, state: FSMContext):
         await state.set_state(User.choosing_gender)
     elif action == "ID":
         # Поиск товара по ID
+        #Тут нужно все пересмотреть есть косяки
         await callback.message.answer('Хороший выбор, вводите ID желаемого товара')
         await state.set_state(User.choosed_id_search)
-        item_unique_id = message.text
+        item_unique_id = callback.message.text
         result = get_unique_id_of_item()
         if item_unique_id != result:
             await callback.message.answer('ID товара введен неправильно')
@@ -116,10 +119,33 @@ async def type_chosen_incorrectly(message: Message):
 async def brand_chosen(message: Message, state: FSMContext):
     # Проверка введенного текста в сообщении на схожесть с элементами из списка брендов
     suggested_brand = utils.brand_check(utils.get_brand_list(), message.text)
-    await message.answer(reply_markup=types.ReplyKeyboardRemove())
-    if suggested_brand is not None:
+    await message.answer(text="ММММ я думаю",reply_markup=types.ReplyKeyboardRemove())
+    if suggested_brand[0]:
         await state.update_data(chosen_brand=suggested_brand)
-        await message.answer(text=text.brand_validation,reply_markup='Переход к выбору одежды по бренду')
-    await message.answer(text=text.brand_search, reply_markup=types.ReplyKeyboardRemove())
+        await state.set_state(User.brand_choosed)
+        await message.answer(text="Выбран бренд)")
+    elif len(suggested_brand)>1 and suggested_brand[1] is not None:
+        await state.update_data(chosen_brand=suggested_brand)
+        await message.answer(text=text.brand_validation,reply_markup=kb.make_row_keyboard(kb.brand_validation))
+        await state.set_state(User.choosing_brand_validation)
+    else:
+        await message.answer(text=text.wrong_brand)
+        #Тут надо предложить еще раз попробовать ввести бренд так как мы его не смогли найти
 
+@router.message(User.choosing_brand_validation, F.text.in_(kb.brand_validation))
+async def brand_validation(message: Message, state: FSMContext):
+    await message.answer(text="ММММ я думаю",reply_markup=types.ReplyKeyboardRemove())
+    if message.text=="Да":
+        await state.set_state(User.brand_choosed)
+    else:
+        await message.answer(text=text.another_try_ask)
+        #Дописать логику как и в хэндлере выше про предложение о еще одной попытке
+
+
+@router.message(User.choosing_brand_validation)
+async def type_chosen_incorrectly(message: Message):
+    await message.answer(text="Ответ дан неверно", reply_markup=kb.make_row_keyboard(kb.brand_validation))
+
+
+#Дальше пишется хэндлер для нового стэйта
 

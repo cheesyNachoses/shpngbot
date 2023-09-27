@@ -12,9 +12,11 @@ def get_brand_list():
 
 #Функция для сравнения
 def brand_check(brand_list, message_text):
-    get_brand_list()
+    brand_list = get_brand_list()
+    if message_text in brand_list:
+        return [True]
     desired_brand = process.extractOne(message_text, list)
     if desired_brand[1] >= 80:
-        return desired_brand
+        return [False, desired_brand]
     else:
-        return None
+        return [False, None]

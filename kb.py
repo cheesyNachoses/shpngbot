@@ -16,6 +16,7 @@ logic_fork = [
 ]
 genders = ["М", "Ж"]
 sizes = ["XS", "S", "M", "L", "XL", "XXL"]
+brand_validation=["Да", "Нет"]
 type_list = utils.get_type_list()
 brand_list = utils.get_brand_list()
 logic_fork = InlineKeyboardMarkup(inline_keyboard=logic_fork)
