@@ -8,6 +8,8 @@ from aiogram.filters.state import StatesGroup, State
 import kb
 import text
 import utils
+from db import get_unique_id_of_item
+
 
 router = Router()
 
@@ -48,7 +50,13 @@ async def callback_main_menu(callback: types.CallbackQuery, state: FSMContext):
         await state.set_state(User.choosing_gender)
     elif action == "ID":
         # Ветка с поиском товара по ID
-        await callback.message.answer("Пока здесь ничего нет")
+        await callback.message.answer('Хороший выбор, вводите ID желаемого товара')
+        item_unique_id = message.text
+        result = get_unique_id_of_item()
+        if item_unique_id != result:
+            await callback.message.answer('ID товара введен неправильно')
+        else:
+            callback.message.answer('Товар успешно добавлен в корзину.\n Продолжаем шоппинг?)')
     await callback.answer()
 
 
@@ -85,7 +93,7 @@ async def callback_logic_fork(callback: types.CallbackQuery, state: FSMContext):
         await callback.message.answer(text.brand)
         await state.set_state(User.choosing_type)
     elif action == "type":
-        # Ветка с поиском товара по ID
+        # Ветка с поиском товара по типу
         await callback.message.answer(text.type, reply_markup=kb.make_row_keyboard(kb.type_list))
         await state.set_state(User.choosing_brand)
     await callback.answer()
@@ -109,6 +117,7 @@ async def brand_chosen(message: Message, state: FSMContext):
     await message.answer(reply_markup=types.ReplyKeyboardRemove())
     if suggested_brand is not None:
         await state.update_data(chosen_brand=suggested_brand)
-        await message.answer(text=text.brand_validation,reply_markup=)
+        await message.answer(text=text.brand_validation,reply_markup='Переход к выбору одежды по бренду')
     await message.answer(text=text.brand_search, reply_markup=types.ReplyKeyboardRemove())
+
 
