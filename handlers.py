@@ -20,6 +20,7 @@ class User(StatesGroup):
     first_step_done = State()
     choosing_type = State()
     choosing_brand = State()
+    choosed_id_search = State()
 
 
 @router.message(Command("start"))
@@ -49,8 +50,9 @@ async def callback_main_menu(callback: types.CallbackQuery, state: FSMContext):
         await callback.message.answer(text.gender, reply_markup=kb.make_row_keyboard(kb.genders))
         await state.set_state(User.choosing_gender)
     elif action == "ID":
-        # Ветка с поиском товара по ID
+        # Поиск товара по ID
         await callback.message.answer('Хороший выбор, вводите ID желаемого товара')
+        await state.set_state(User.choosed_id_search)
         item_unique_id = message.text
         result = get_unique_id_of_item()
         if item_unique_id != result:
@@ -91,11 +93,11 @@ async def callback_logic_fork(callback: types.CallbackQuery, state: FSMContext):
     action = callback.data.split("_")[1]
     if action == "brand":
         await callback.message.answer(text.brand)
-        await state.set_state(User.choosing_type)
+        await state.set_state(User.choosing_brand)
     elif action == "type":
         # Ветка с поиском товара по типу
         await callback.message.answer(text.type, reply_markup=kb.make_row_keyboard(kb.type_list))
-        await state.set_state(User.choosing_brand)
+        await state.set_state(User.choosing_type)
     await callback.answer()
 
 
