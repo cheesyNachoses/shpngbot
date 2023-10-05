@@ -118,7 +118,7 @@ async def type_chosen_incorrectly(message: Message):
 @router.message(User.choosing_brand)
 async def brand_chosen(message: Message, state: FSMContext):
     # Проверка введенного текста в сообщении на схожесть с элементами из списка брендов
-    suggested_brand = utils.brand_check(utils.get_brand_list(), message.text)
+    suggested_brand = utils.brand_check(message.text)
     await message.answer(text="ММММ я думаю",reply_markup=types.ReplyKeyboardRemove())
     if suggested_brand[0]:
         await state.update_data(chosen_brand=suggested_brand)
