@@ -11,7 +11,7 @@ def get_brand_list():
 
 
 #Функция для сравнения
-def brand_check(brand_list, message_text):
+def brand_check(message_text):
     brand_list = get_brand_list()
     if message_text in brand_list:
         return [True]
