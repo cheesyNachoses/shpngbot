@@ -21,6 +21,7 @@ class User(StatesGroup):
     choosing_type = State()
     choosing_brand = State()
     choosing_brand_validation = State()
+    retry_choosing_brand = State()
     brand_choosed= State()  #Этот стэйт надо нормально назвать в соответствии с тем, что дальше по логике
 
 
@@ -130,22 +131,28 @@ async def brand_chosen(message: Message, state: FSMContext):
         await message.answer(text=text.brand_validation, reply_markup=kb.make_row_keyboard(kb.brand_validation))
         await message.answer(text=f"Ваш бренд: {suggested_brand[1]}")
         await state.set_state(User.choosing_brand_validation)
-    else:
+    elif not (suggested_brand[0] and (len(suggested_brand > 1 ) and suggested_brand[1] is not None)):
         await message.answer(text=text.wrong_brand)
+        await message.answer(text=text.another_try_ask)
+        return
+
         #Тут надо предложить еще раз попробовать ввести бренд так как мы его не смогли найти
 
 @router.message(User.choosing_brand_validation, F.text.in_(kb.brand_validation))
 async def brand_validation(message: Message, state: FSMContext):
-    await message.answer(text="Отлично, бренд выбран. Перейдем к вещам?",reply_markup=types.ReplyKeyboardRemove())
     if message.text=="Да":
         await state.set_state(User.brand_choosed)
+        await message.answer(text="Отлично, бренд выбран. Перейдем к вещам?", reply_markup=types.ReplyKeyboardRemove())
     else:
-        await message.answer(text=text.another_try_ask)
+        await message.answer(text=text.brand_defined_wrong,reply_markup=types.ReplyKeyboardRemove())
+        await state.set_state(User.choosing_brand_validation)
+        await state.finish()
+        await state.set_state(User.choosing_brand)
         #Дописать логику как и в хэндлере выше про предложение о еще одной попытке
 
 
 @router.message(User.choosing_brand_validation)
-async def type_chosen_incorrectly(message: Message):
+async def brand_chosen_incorrectly(message: Message):
     await message.answer(text="Ответ дан неверно", reply_markup=kb.make_row_keyboard(kb.brand_validation))
 
 

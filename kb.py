@@ -9,10 +9,10 @@ def make_row_keyboard(items: list[str]) -> ReplyKeyboardMarkup:
 
 
 menu_main = [
-    [InlineKeyboardButton(text="Уже выбрал товар", callback_data="item_search_ID"), InlineKeyboardButton(text="Поиск товара", callback_data="item_search_choice")]
+    [InlineKeyboardButton(text="Знаю номер товара", callback_data="item_search_ID"), InlineKeyboardButton(text="Поиск подходящего товара", callback_data="item_search_choice")]
 ]
 logic_fork = [
-    [InlineKeyboardButton(text="Выбор по бренду", callback_data="filter_brand"), InlineKeyboardButton(text="Выбор по типу одежды", callback_data="filter_type")]
+    [InlineKeyboardButton(text="Поиск по бренду", callback_data="filter_brand"), InlineKeyboardButton(text="Поиск по типу одежды", callback_data="filter_type")]
 ]
 genders = ["М", "Ж"]
 sizes = ["XS", "S", "M", "L", "XL", "XXL"]
