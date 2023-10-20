@@ -14,12 +14,16 @@ menu_main = [
 logic_fork = [
     [InlineKeyboardButton(text="Поиск по бренду", callback_data="filter_brand"), InlineKeyboardButton(text="Поиск по типу одежды", callback_data="filter_type")]
 ]
+logic_fork_after_brand = [
+    [InlineKeyboardButton(text="Смотреть все вещи", callback_data='filter_all_items'), InlineKeyboardButton(text="Смотреть одежду по типу", callback_data="filter_types")]
+ ]
 genders = ["М", "Ж"]
 sizes = ["XS", "S", "M", "L", "XL", "XXL"]
 brand_validation=["Да", "Нет"]
 type_list = utils.get_type_list()
 brand_list = utils.get_brand_list()
 logic_fork = InlineKeyboardMarkup(inline_keyboard=logic_fork)
+logic_fork_after_brand = InlineKeyboardMarkup(inline_keyboard=logic_fork_after_brand)
 menu_main = InlineKeyboardMarkup(inline_keyboard=menu_main)
 exit_kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="Выйти в меню")]], resize_keyboard=True)
 iexit_kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Выйти в меню", callback_data="menu_main")]])

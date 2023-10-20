@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.state import StatesGroup, State
 
-
+from states import User
 import kb
 import text
 import utils
@@ -12,18 +12,6 @@ from db import get_unique_id_of_item
 
 
 router = Router()
-
-
-class User(StatesGroup):
-    choosing_gender = State()
-    choosing_size = State()
-    first_step_done = State()
-    choosing_type = State()
-    choosing_brand = State()
-    choosing_brand_validation = State()
-    retry_choosing_brand = State()
-    brand_choosed= State()  #Этот стэйт надо нормально назвать в соответствии с тем, что дальше по логике
-
 
 
 @router.message(Command("start"))
@@ -123,15 +111,15 @@ async def brand_chosen(message: Message, state: FSMContext):
     await message.answer(text="Происходит поиск бренда",reply_markup=types.ReplyKeyboardRemove())
     if suggested_brand[0]:
         await state.update_data(chosen_brand=suggested_brand)
-        await state.set_state(User.brand_choosed)
+        await state.set_state(User.brand_chosen)
         await message.answer(text=f"Ваш бренд: {suggested_brand[1]}")
         await message.answer(text="Бренд записан")
-    elif len(suggested_brand)>1 and suggested_brand[1] is not None:
+    elif suggested_brand[1] is not None:
         await state.update_data(chosen_brand=suggested_brand)
         await message.answer(text=text.brand_validation, reply_markup=kb.make_row_keyboard(kb.brand_validation))
         await message.answer(text=f"Ваш бренд: {suggested_brand[1]}")
         await state.set_state(User.choosing_brand_validation)
-    elif not (suggested_brand[0] and (len(suggested_brand > 1 ) and suggested_brand[1] is not None)):
+    elif not (suggested_brand[0] and suggested_brand[1] is not None):
         await message.answer(text=text.wrong_brand)
         await message.answer(text=text.another_try_ask)
         return
@@ -141,13 +129,14 @@ async def brand_chosen(message: Message, state: FSMContext):
 @router.message(User.choosing_brand_validation, F.text.in_(kb.brand_validation))
 async def brand_validation(message: Message, state: FSMContext):
     if message.text=="Да":
-        await state.set_state(User.brand_choosed)
-        await message.answer(text="Отлично, бренд выбран. Перейдем к вещам?", reply_markup=types.ReplyKeyboardRemove())
+        #Эту строчку надо удалить, в следующей разметку клавиатуры поменять. А после уже присваивать стэцт с нужным названием
+        await message.answer(text="Отлично, бренд выбран", reply_markup=types.ReplyKeyboardRemove())
+        await message.answer(text='Перейдем к вещам',reply_markup = kb.logic_fork_after_brand)
+        await state.set_state(User.step_of_choosing_items)
     else:
         await message.answer(text=text.brand_defined_wrong,reply_markup=types.ReplyKeyboardRemove())
-        await state.set_state(User.choosing_brand_validation)
-        await state.finish()
         await state.set_state(User.choosing_brand)
+        return
         #Дописать логику как и в хэндлере выше про предложение о еще одной попытке
 
 
@@ -156,5 +145,16 @@ async def brand_chosen_incorrectly(message: Message):
     await message.answer(text="Ответ дан неверно", reply_markup=kb.make_row_keyboard(kb.brand_validation))
 
 
-#Дальше пишется хэндлер для нового стэйта
+@router.callback_query(User.step_of_choosing_items, F.data.startswith("filter"))
+async def callback_logic_fork_with_types(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.edit_reply_markup()
+    choice = callback.data.split("_")[1]
+    if choice == "all_items":
+        await callback.message.answer(text.watching_everything)
+        await state.set_state(User.chose_watching_all_items)
+    elif choice == "types":
+        await callback.message.answer(text.search_through_types_for_brand, reply_markup=kb.make_row_keyboard(kb.type_list))
+        await state.set_state(User.chose_types_after_brand)
+    await callback.answer()
+
 
