@@ -14,7 +14,7 @@ def get_brand_list():
 def brand_check(message_text):
     brand_list = get_brand_list()
     if message_text in brand_list:
-        return [True]
+        return [True , message_text]
     desired_brand = process.extractOne(message_text, brand_list)
     if desired_brand[1] >= 70:
         return [False, desired_brand[0]]
